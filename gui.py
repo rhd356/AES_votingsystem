@@ -109,6 +109,7 @@ def setup_gui():
     tk.Label(main_window, text="Fingerprint Voter System", font=("Arial", 16, "bold")).pack(pady=10)
     tk.Button(main_window, text="Register Voter", font=("Arial", 12), command=lambda: root.after(200, registration_dialog)).pack(pady=10)
     tk.Button(main_window, text="Verify Fingerprint", font=("Arial", 12), command=verify_fingerprint).pack(pady=10)
+    tk.Button(main_window, text="Save", font=("Arial", 12), command=save_to_csv).pack(pady=10)
     tk.Button(main_window, text="Exit", font=("Arial", 12), command=lambda: (save_to_csv(), root.quit())).pack(pady=10)
 
     root.mainloop()
