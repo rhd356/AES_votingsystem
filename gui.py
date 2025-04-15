@@ -100,7 +100,7 @@ def setup_gui():
     root = tk.Tk()
     root.withdraw()
 
-    load_from_csv()  # Load existing voter records from CSV file
+    load_from_csv()  # Load existing voter records from CSV and .bin image file
 
     main_window = tk.Toplevel(root)
     main_window.title("Fingerprint Voter System")
