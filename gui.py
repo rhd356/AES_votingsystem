@@ -88,9 +88,9 @@ def run_verification_dialog():                                      # Opens a fi
             best_score = score
             best_match = voter
 
-    threshold = 1 / 20           # Similarity threshold
-    if best_match and best_score < threshold:          # If good enough match found
-        voter_info = best_match.decrypt_info(key)      # Decrypt matched voter's info
+    threshold = 1 / 20                                                          # Similarity threshold
+    if best_match and best_score < threshold:          
+        voter_info = best_match.decrypt_info(key)      
         messagebox.showinfo("Match Found", f"Match: {voter_info['name']}, {voter_info['address']}, {voter_info['ssn']}")  # Show match
     else:
         messagebox.showerror("No Match", "No matching voter found.")               # Show error if no match
