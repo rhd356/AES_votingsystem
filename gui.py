@@ -7,7 +7,7 @@ from encryption import (
     encrypt_text_aes, decrypt_text_aes,
     key
 )
-from voter import Voter, voter_records
+from voter import Voter, voter_records, save_to_csv, load_from_csv
 
 def get_fingerprint_file():
     file_path = filedialog.askopenfilename(
@@ -51,52 +51,56 @@ def registration_dialog():
 
     tk.Button(dialog, text="Submit", font=("Arial", 12), command=submit).pack(pady=20)
 
-def register_voter_with_data(name, address, ssn):
-    fingerprint_path = get_fingerprint_file()
-    if not fingerprint_path:
-        messagebox.showerror("Error", "No fingerprint image selected!")
+def register_voter_with_data(name, address, ssn):                           # Encrypt and store the voter record
+    fingerprint_path = get_fingerprint_file()                               # Ask user to select fingerprint image
+    if not fingerprint_path:                                                # If no image selected
+        messagebox.showerror("Error", "No fingerprint image selected!")     
         return
 
+    # Encrypt voter data and fingerprint image
     encrypted_name = encrypt_text_aes(name, key)
     encrypted_address = encrypt_text_aes(address, key)
     encrypted_ssn = encrypt_text_aes(ssn, key)
     encrypted_fp = encrypt_image_aes(fingerprint_path, key)
 
+    # Create Voter object and save it
     voter = Voter(encrypted_name, encrypted_address, encrypted_ssn, encrypted_fp)
-    voter_records.append(voter)
-    messagebox.showinfo("Success", f"Voter {name} registered successfully!")
+    voter_records.append(voter)  # Add to voter list
+    messagebox.showinfo("Success", f"Voter {name} registered successfully!")  # Success message
 
-def verify_fingerprint():
+def verify_fingerprint():  # Delay verification slightly to allow GUI to update
     root.after(200, run_verification_dialog)
 
-def run_verification_dialog():
-    fingerprint_path = get_fingerprint_file()
+def run_verification_dialog():                                      # Opens a file and checks for matching fingerprint
+    fingerprint_path = get_fingerprint_file()                       # Let user pick fingerprint image
     if not fingerprint_path:
-        messagebox.showerror("Error", "No fingerprint image selected!")
+        messagebox.showerror("Error", "No fingerprint image selected!") 
         return
 
-    input_img = cv2.imread(fingerprint_path, cv2.IMREAD_COLOR)
-    best_match = None
-    best_score = float('inf')
+    input_img = cv2.imread(fingerprint_path, cv2.IMREAD_COLOR)  # Load selected image
+    best_match = None                                           # Initialize best match
+    best_score = float('inf')                                   # Initialize best score (lower is better)
 
-    for voter in voter_records:
-        decrypted_img = decrypt_image_aes(voter.encrypted_fingerprint, key)
-        score = compare_fingerprints(input_img, decrypted_img)
-        if score < best_score:
+    for voter in voter_records:                                                 # Loop over all registered voters
+        decrypted_img = decrypt_image_aes(voter.encrypted_fingerprint, key)     # Decrypt their fingerprint
+        score = compare_fingerprints(input_img, decrypted_img)                  # Compare with input
+        if score < best_score:                                                  # If it's the best match so far
             best_score = score
             best_match = voter
 
-    threshold = 1 / 20
-    if best_match and best_score < threshold:
-        voter_info = best_match.decrypt_info(key)
-        messagebox.showinfo("Match Found", f"Match: {voter_info['name']}, {voter_info['address']}, {voter_info['ssn']}")
+    threshold = 1 / 20           # Similarity threshold
+    if best_match and best_score < threshold:          # If good enough match found
+        voter_info = best_match.decrypt_info(key)      # Decrypt matched voter's info
+        messagebox.showinfo("Match Found", f"Match: {voter_info['name']}, {voter_info['address']}, {voter_info['ssn']}")  # Show match
     else:
-        messagebox.showerror("No Match", "No matching voter found.")
+        messagebox.showerror("No Match", "No matching voter found.")               # Show error if no match
 
 def setup_gui():
     global root
     root = tk.Tk()
     root.withdraw()
+
+    load_from_csv()  # Load existing voter records from CSV file
 
     main_window = tk.Toplevel(root)
     main_window.title("Fingerprint Voter System")
@@ -106,5 +110,7 @@ def setup_gui():
     tk.Button(main_window, text="Register Voter", font=("Arial", 12), command=lambda: root.after(200, registration_dialog)).pack(pady=10)
     tk.Button(main_window, text="Verify Fingerprint", font=("Arial", 12), command=verify_fingerprint).pack(pady=10)
     tk.Button(main_window, text="Exit", font=("Arial", 12), command=root.quit).pack(pady=10)
+
+    tk.Button(main_window, text="Exit", font=("Arial", 12), command=lambda: (save_to_csv(), root.quit())).pack(pady=10)
 
     root.mainloop()
