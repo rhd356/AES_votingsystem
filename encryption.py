@@ -1,9 +1,22 @@
+import os
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 import cv2
 import numpy as np
 
-key = get_random_bytes(32) # generate a random 256-bit key
+KEY_FILE = "aes_key.bin"
+
+def load_or_create_key():
+    if os.path.exists(KEY_FILE):
+        with open(KEY_FILE, "rb") as f:
+            return f.read()
+    else:
+        new_key = get_random_bytes(32)
+        with open(KEY_FILE, "wb") as f:
+            f.write(new_key)
+        return new_key
+
+key = load_or_create_key()
 
 def pad(data):
     pad_len = AES.block_size - (len(data) % AES.block_size)     # 

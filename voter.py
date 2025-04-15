@@ -21,13 +21,16 @@ voter_records = []  # List to hold all voter objects in memory
 def save_to_csv(filename="voters.csv"):
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["encrypted_name", "encrypted_address", "encrypted_ssn", "encrypted_fingerprint"])  # Header
-        for voter in voter_records:
+        writer.writerow(["encrypted_name", "encrypted_address", "encrypted_ssn", "fingerprint_path"])
+        for i, voter in enumerate(voter_records):
+            fp_filename = f"fingerprint_{i:03}.bin"
+            with open(fp_filename, "wb") as fp_file:
+                fp_file.write(voter.encrypted_fingerprint)
             writer.writerow([
                 base64.b64encode(voter.encrypted_name).decode('utf-8'),
                 base64.b64encode(voter.encrypted_address).decode('utf-8'),
                 base64.b64encode(voter.encrypted_ssn).decode('utf-8'),
-                base64.b64encode(voter.encrypted_fingerprint).decode('utf-8')
+                fp_filename
             ])
 
 def load_from_csv(filename="voters.csv"):
@@ -38,8 +41,9 @@ def load_from_csv(filename="voters.csv"):
                 encrypted_name = base64.b64decode(row['encrypted_name'])
                 encrypted_address = base64.b64decode(row['encrypted_address'])
                 encrypted_ssn = base64.b64decode(row['encrypted_ssn'])
-                encrypted_fingerprint = base64.b64decode(row['encrypted_fingerprint'])
-                voter = Voter(encrypted_name, encrypted_address, encrypted_ssn, encrypted_fingerprint)
+                with open(row['fingerprint_path'], "rb") as fp_file:
+                    encrypted_fp = fp_file.read()
+                voter = Voter(encrypted_name, encrypted_address, encrypted_ssn, encrypted_fp)
                 voter_records.append(voter)
     except FileNotFoundError:
         print("No existing voter file found. Starting fresh.")
