@@ -19,12 +19,12 @@ def load_or_create_key():
 key = load_or_create_key()
 
 def pad(data):
-    pad_len = AES.block_size - (len(data) % AES.block_size)     # 
-    return data + bytes([pad_len] * pad_len)                    #
+    pad_len = AES.block_size - (len(data) % AES.block_size)     # calculate length of padding needed
+    return data + bytes([pad_len] * pad_len)                    # return data with padding appended
 
 def unpad(data):
-    pad_len = data[-1]                          #
-    return data[:-pad_len]                      #
+    pad_len = data[-1]                          # retrieves padding length from last byte
+    return data[:-pad_len]                      # remove padding and return original unpadded data
 
 def encrypt_image_aes(image_path, key):
     with open(image_path, 'rb') as f:                     # open the image file in binary mode
